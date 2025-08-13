@@ -97,6 +97,22 @@ public class Card : MonoBehaviour
         transform.localScale = originalScale;
         isAnimating = false;
     }
+    public void RestoreStateInstant(bool flipped, bool matched)
+    {
+        // ensure sprites are already assigned before calling this
+        isAnimating = false;
+        isMatched = matched;
+        isFlipped = flipped;
+
+        // show correct face immediately
+        if (flipped)
+            GetComponent<SpriteRenderer>().sprite = frontSprite;
+        else
+            GetComponent<SpriteRenderer>().sprite = backSprite;
+
+        // keep original size
+        transform.localScale = originalScale;
+    }
 
     public bool IsFlipped => isFlipped;
     public bool IsMatched => isMatched;
