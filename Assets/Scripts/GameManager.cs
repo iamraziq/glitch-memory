@@ -13,7 +13,8 @@ public class GameManager : MonoBehaviour
     public float spacing = 0.2f;
 
     private List<Card> flippedCards = new List<Card>();
-
+    public ScoreManager scoreManager;
+    public AudioManager audioManager;
     void OnEnable() => Card.OnCardFlipped += HandleCardFlipped;
     void OnDisable() => Card.OnCardFlipped -= HandleCardFlipped;
 
@@ -66,8 +67,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //void HandleCardFlipped(Card card)
+    //{
+    //    flippedCards.Add(card);
+
+    //    if (flippedCards.Count == 2)
+    //    {
+    //        CheckMatch();
+    //    }
+    //}
     void HandleCardFlipped(Card card)
     {
+        audioManager?.PlayFlip();
         flippedCards.Add(card);
 
         if (flippedCards.Count == 2)
@@ -76,6 +87,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //void CheckMatch()
+    //{
+    //    Card card1 = flippedCards[0];
+    //    Card card2 = flippedCards[1];
+
+    //    if (card1.cardId == card2.cardId)
+    //    {
+    //        card1.SetMatched();
+    //        card2.SetMatched();
+
+    //    }
+    //    else
+    //    {
+    //        StartCoroutine(FlipBackAfterDelay(card1, card2));
+    //    }
+
+    //    flippedCards.Clear();
+    //}
     void CheckMatch()
     {
         Card card1 = flippedCards[0];
@@ -85,15 +114,33 @@ public class GameManager : MonoBehaviour
         {
             card1.SetMatched();
             card2.SetMatched();
+            scoreManager?.AddScore(10);
+            audioManager?.PlayMatch();
 
+            if (AllCardsMatched())
+            {
+                audioManager?.PlayGameOver();
+            }
         }
         else
         {
+            scoreManager?.SubtractScore(2);
+            audioManager?.PlayMismatch();
             StartCoroutine(FlipBackAfterDelay(card1, card2));
         }
 
         flippedCards.Clear();
     }
+    bool AllCardsMatched()
+    {
+        Card[] allCards = FindObjectsOfType<Card>();
+        foreach (var card in allCards)
+        {
+            if (!card.IsMatched) return false;
+        }
+        return true;
+    }
+
     IEnumerator FlipBackAfterDelay(Card c1, Card c2)
     {
         yield return new WaitForSeconds(1f);
