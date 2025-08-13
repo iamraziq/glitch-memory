@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
@@ -84,6 +85,7 @@ public class GameManager : MonoBehaviour
         {
             card1.SetMatched();
             card2.SetMatched();
+
         }
         else
         {
@@ -92,11 +94,11 @@ public class GameManager : MonoBehaviour
 
         flippedCards.Clear();
     }
-
-    System.Collections.IEnumerator FlipBackAfterDelay(Card c1, Card c2)
+    IEnumerator FlipBackAfterDelay(Card c1, Card c2)
     {
         yield return new WaitForSeconds(1f);
         if (!c1.IsMatched) c1.ShowBack();
         if (!c2.IsMatched) c2.ShowBack();
     }
+
 }
