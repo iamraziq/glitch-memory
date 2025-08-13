@@ -16,17 +16,41 @@ public class GameManager : MonoBehaviour
     public ScoreManager scoreManager;
     public AudioManager audioManager;
     private bool isLoading = false;
-
+    [SerializeField] private float initialRevealTime = 2f; 
+    private bool isRevealing = false;
     void OnEnable() => Card.OnCardFlipped += HandleCardFlipped;
     void OnDisable() => Card.OnCardFlipped -= HandleCardFlipped;
 
     void Start()
     {
-        // Try to load game first, else generate new grid
         if (!LoadGame())
         {
-            GenerateGrid();
+            StartCoroutine(StartWithReveal());
         }
+    }
+    IEnumerator StartWithReveal()
+    {
+        isRevealing = true;
+        GenerateGrid();
+
+        // Show all cards face-up instantly
+        Card[] cards = FindObjectsOfType<Card>();
+        foreach (var card in cards)
+        {
+            card.RestoreStateInstant(true, false);
+        }
+
+        // Wait for the reveal time
+        yield return new WaitForSeconds(initialRevealTime);
+
+        // Flip all cards back
+        foreach (var card in cards)
+        {
+            if (!card.IsMatched)
+                card.ShowBack();
+        }
+
+        isRevealing = false;
     }
 
     void GenerateGrid()
@@ -67,7 +91,7 @@ public class GameManager : MonoBehaviour
                 card.cardId = id;
                 card.frontSprite = cardFrontSprites[id % cardFrontSprites.Length];
                 card.backSprite = cardBackSprite;
-                if (!isLoading)
+                if (!isLoading && !isRevealing)
                     card.ShowBack();
                 index++;
             }
