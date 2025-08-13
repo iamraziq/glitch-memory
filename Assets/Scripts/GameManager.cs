@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,16 +19,18 @@ public class GameManager : MonoBehaviour
     private bool isLoading = false;
     [SerializeField] private float initialRevealTime = 2f; 
     private bool isRevealing = false;
+
+    public GameObject enableDialoguePanel;
+    public GameObject mainMenuPanel;
+    public GameObject gameOverPanel;
     void OnEnable() => Card.OnCardFlipped += HandleCardFlipped;
     void OnDisable() => Card.OnCardFlipped -= HandleCardFlipped;
 
     void Start()
     {
-        if (!LoadGame())
-        {
-            StartCoroutine(StartWithReveal());
-        }
+        
     }
+
     IEnumerator StartWithReveal()
     {
         isRevealing = true;
@@ -125,8 +128,8 @@ public class GameManager : MonoBehaviour
 
             if (AllCardsMatched())
             {
-                audioManager?.PlayGameOver();
-                SaveLoadManager.ClearSave(); // clear progress after completion
+                Invoke("WinCall", 2f);
+                return;
             }
         }
         else
@@ -139,7 +142,12 @@ public class GameManager : MonoBehaviour
         flippedCards.Clear();
         SaveGame();
     }
-
+    public void WinCall()
+    {
+        audioManager?.PlayGameOver();
+        SaveLoadManager.ClearSave(); // clear progress after completion
+        gameOverPanel.SetActive(true);
+    }
     bool AllCardsMatched()
     {
         Card[] allCards = FindObjectsOfType<Card>();
@@ -157,7 +165,41 @@ public class GameManager : MonoBehaviour
         if (!c2.IsMatched) c2.ShowBack();
         SaveGame();
     }
-
+    // --------------- BUTTON ACTIONS --------------
+    public void OnClickPlay()
+    {       
+        if (SaveLoadManager.HasSave())
+        {
+            enableDialoguePanel.SetActive(true); // run when save exists
+        }
+        else
+        {
+            mainMenuPanel.SetActive(false);
+            OnStartGame(); // run when save doesn't exist
+        }
+    }
+    public void OnStartGame()
+    {
+        enableDialoguePanel.SetActive(false);
+        mainMenuPanel.SetActive(false);
+        if (!LoadGame())
+        {
+            StartCoroutine(StartWithReveal());
+        }
+    }
+    public void OnResetGame()
+    {
+        SaveLoadManager.ClearSave();
+        OnStartGame();
+    }
+    public void OnClickHomeButton()
+    {
+        SceneManager.LoadScene(0);
+    }
+    public void onQuit()
+    {
+        Application.Quit();
+    }
     // ---------------- SAVE / LOAD ----------------
     void SaveGame()
     {
